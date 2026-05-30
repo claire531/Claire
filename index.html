@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="오즈">
 <meta name="theme-color" content="#F5C800">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>🌈 오즈 관극 다이어리</title>
+<title>🦋 오즈 관극 다이어리</title>
 <style>
   :root {
     --yellow: #F5C800;
@@ -220,7 +220,7 @@
     font-size: 18px; position: relative;
   }
   .stamp.filled { background: var(--green); }
-  .stamp.filled::after { content: '🌈'; font-size: 16px; }
+  .stamp.filled::after { content: '🦋'; font-size: 16px; }
   .stamp.milestone { border: 3px solid var(--green-light); }
   .stamp-info { font-size: 11px; color: var(--green); margin-top: 8px; font-weight: 600; }
 
@@ -404,7 +404,7 @@
 
 <!-- HEADER -->
 <div class="app-header">
-  <h1>🌈 오즈 관극 다이어리</h1>
+  <h1>🦋 오즈 관극 다이어리</h1>
   <button class="header-btn" onclick="openAddModal()">+ 기록</button>
 </div>
 
@@ -1075,7 +1075,7 @@ function renderStampCards() {
     }
     return `<div class="stamp-card" style="margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div class="stamp-card-title">🌈 ${card.name}</div>
+        <div class="stamp-card-title">🦋 ${card.name}</div>
         <div style="display:flex;gap:6px;">
           <button onclick="openStampActionModal('${card.id}')" style="background:var(--green);color:white;border:none;border-radius:10px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">+ 도장</button>
           <button onclick="openStampHistoryModal('${card.id}')" style="background:none;border:1px solid var(--green);color:var(--green);border-radius:10px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">이력</button>
@@ -1370,12 +1370,11 @@ function renderStats() {
 }
 
 function renderHeatmap(paid) {
-  // TOM 2관: B구역(1~7열, 1~11번), C구역(1~6열, 1~21번), D구역(1~6열, 1~10번)
-  const zones = {
-    'B구역': {rows:7, cols:11},
-    'C구역': {rows:6, cols:21},
-    'D구역': {rows:6, cols:10},
-  };
+  const zones = [
+    {name:'B구역', rows:7, cols:11},
+    {name:'C구역', rows:6, cols:21},
+    {name:'D구역', rows:6, cols:10},
+  ];
   const seatCount = {};
   paid.forEach(l => {
     if (l.zone && l.row && l.seat) {
@@ -1384,22 +1383,25 @@ function renderHeatmap(paid) {
     }
   });
 
-  let html = '';
-  Object.entries(zones).forEach(([zone, info]) => {
-    html += `<div class="seat-zone"><div class="zone-label">${zone}</div>`;
-    for (let r = 1; r <= info.rows; r++) {
-      html += `<div class="seat-row"><span class="row-label">${r}열</span>`;
-      for (let c = 1; c <= info.cols; c++) {
-        const k = `${zone}-${r}-${c}`;
+  let out = '<div style="display:flex;gap:4px;align-items:flex-start;overflow-x:auto;">';
+  zones.forEach(({name, rows, cols}) => {
+    out += `<div style="flex-shrink:0;">`;
+    out += `<div style="font-size:9px;font-weight:700;color:var(--green);text-align:center;margin-bottom:3px;">${name}</div>`;
+    for (let r = 1; r <= rows; r++) {
+      out += `<div style="display:flex;align-items:center;gap:1px;margin-bottom:1px;">`;
+      out += `<span style="font-size:7px;color:var(--gray-500);min-width:10px;text-align:right;padding-right:1px;">${r}열</span>`;
+      for (let c = 1; c <= cols; c++) {
+        const k = `${name}-${r}-${c}`;
         const cnt = seatCount[k]||0;
-        const cls = cnt === 0 ? '' : cnt === 1 ? 's1' : cnt === 2 ? 's2' : cnt === 3 ? 's3' : 's4';
-        html += `<div class="seat ${cls}" title="${zone} ${r}열 ${c}번">${cnt||''}</div>`;
+        const cls = cnt===0?'':cnt===1?'s1':cnt===2?'s2':cnt===3?'s3':'s4';
+        out += `<div class="seat ${cls}" style="width:8px;height:8px;font-size:5px;border-radius:1px;" title="${name} ${r}열 ${c}번">${cnt||''}</div>`;
       }
-      html += '</div>';
+      out += `</div>`;
     }
-    html += '</div>';
+    out += `</div>`;
   });
-  document.getElementById('heatmap-content').innerHTML = html;
+  out += '</div>';
+  document.getElementById('heatmap-content').innerHTML = out;
 }
 
 // ===== SEAT SELECTORS =====
