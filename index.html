@@ -1371,9 +1371,9 @@ function renderStats() {
 
 function renderHeatmap(paid) {
   const zones = [
-    {name:'B구역', rows:7, cols:11},
-    {name:'C구역', rows:6, cols:21},
-    {name:'D구역', rows:6, cols:10},
+    {name:'B구역', rows:7, cols:11, rowCols:[8,10,11,11,10,8,6]},
+    {name:'C구역', rows:6, cols:21, rowCols:null},
+    {name:'D구역', rows:6, cols:10, rowCols:null},
   ];
   const seatCount = {};
   paid.forEach(l => {
@@ -1384,18 +1384,23 @@ function renderHeatmap(paid) {
   });
 
   let out = '<div style="display:flex;gap:4px;align-items:flex-start;overflow-x:auto;">';
-  zones.forEach(({name, rows, cols}) => {
+  zones.forEach(({name, rows, cols, rowCols}) => {
     out += `<div style="flex-shrink:0;">`;
     out += `<div style="font-size:9px;font-weight:700;color:var(--green);text-align:center;margin-bottom:3px;">${name}</div>`;
     for (let r = 1; r <= rows; r++) {
       out += `<div style="display:flex;align-items:center;gap:1px;margin-bottom:1px;">`;
       out += `<span style="font-size:7px;color:var(--gray-500);min-width:10px;text-align:right;padding-right:1px;">${r}열</span>`;
-      for (let c = 1; c <= cols; c++) {
+      // B구역은 열별 최대번호 기준 역순 (오른쪽=1번)
+      const maxCol = rowCols ? rowCols[r-1] : cols;
+      const seatNums = rowCols
+        ? Array.from({length:maxCol}, (_,i) => maxCol - i)
+        : Array.from({length:cols}, (_,i) => i + 1);
+      seatNums.forEach(c => {
         const k = `${name}-${r}-${c}`;
         const cnt = seatCount[k]||0;
         const cls = cnt===0?'':cnt===1?'s1':cnt===2?'s2':cnt===3?'s3':'s4';
         out += `<div class="seat ${cls}" style="width:8px;height:8px;font-size:5px;border-radius:1px;" title="${name} ${r}열 ${c}번">${cnt||''}</div>`;
-      }
+      });
       out += `</div>`;
     }
     out += `</div>`;
@@ -1407,6 +1412,7 @@ function renderHeatmap(paid) {
 // ===== SEAT SELECTORS =====
 const ZONE_ROWS = {'B구역':7, 'C구역':6, 'D구역':6};
 const ZONE_COLS = {'B구역':11, 'C구역':21, 'D구역':10};
+const B_ROW_COLS = [8,10,11,11,10,8,6];
 
 function updateRowOptions() {
   const zone = document.getElementById('f-zone').value;
@@ -1421,10 +1427,12 @@ function updateRowOptions() {
 }
 function updateSeatOptions() {
   const zone = document.getElementById('f-zone').value;
+  const row = parseInt(document.getElementById('f-row').value);
   const seatSel = document.getElementById('f-seat');
   seatSel.innerHTML = '<option value="">-</option>';
   if (!zone) return;
-  for (let i = 1; i <= ZONE_COLS[zone]; i++) {
+  const maxSeat = (zone === 'B구역' && row) ? B_ROW_COLS[row-1] : ZONE_COLS[zone];
+  for (let i = 1; i <= maxSeat; i++) {
     seatSel.innerHTML += `<option value="${i}">${i}번</option>`;
   }
 }
